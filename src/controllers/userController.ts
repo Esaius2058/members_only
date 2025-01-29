@@ -60,7 +60,7 @@ export async function updateUser(req: Request, res: Response) {
       password,
     });
     res.status(200).json({
-      mesage: "Updated successfully",
+      message: "Updated successfully",
       userName: updatedUser.userName,
       fullName: updatedUser.fullName,
     });
@@ -81,7 +81,7 @@ export async function loginUser(
     }
 
     if (!user) {
-      return res.status(401).json({ message: info.message });
+      return res.status(401).json({ message: info?.message || "Unauthorized" });
     }
 
     req.logIn(user, (err) => {
