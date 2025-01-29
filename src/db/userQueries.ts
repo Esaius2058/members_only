@@ -8,16 +8,18 @@ interface User {
   fullname: string;
   username: string;
   password: string;
-  membership: boolean;
+  membership?: boolean;
 }
 
 interface UserResponse {
   message: string;
   status: number;
   userId: number;
+  userName: string;
+  fullName?: string;
 }
 
-export async function createUser({
+export async function handleCreateUser({
   fullname,
   username,
   password,
@@ -27,7 +29,7 @@ export async function createUser({
     throw new Error("Invalid input: All fields must be provided");
   }
   const hashedPassword = await bcrypt.hash(password, 10);
-  const query = `insert into users (fullname, username, password, membership) values ($1, $2, $3, $4) `;
+  const query = `insert into users (fullname, username, password, membership) values ($1, $2, $3, $4) returning userid, username`;
   const values = [fullname, username, hashedPassword, membership];
 
   try {
@@ -36,6 +38,7 @@ export async function createUser({
       message: "User created successfullly",
       status: 201,
       userId: result.rows[0].userid,
+      userName: result.rows[0].username
     };
   } catch (error: unknown) {
     console.error("Could not create user", error);
@@ -80,7 +83,7 @@ passport.deserializeUser(async (id: number, done) => {
   }
 });
 
-export async function updateUser({
+export async function handleUpdateUser({
   fullname,
   username,
   password,
@@ -99,6 +102,8 @@ export async function updateUser({
       message: "Updated successfully",
       status: 200,
       userId: result.rows[0].userid,
+      userName: result.rows[0].username,
+      fullName: result.rows[0].fullname
     };
   } catch (error) {
     console.error("Error updating user");
@@ -106,7 +111,7 @@ export async function updateUser({
   }
 }
 
-export async function getUserById(id: number): Promise<User> {
+export async function handleGetUserById(id: number): Promise<User> {
   try {
     const result = await pool.query("select * from users where userid = $1", [
       id,
