@@ -1,8 +1,11 @@
 import pool from "./pool";
 
-interface MessageInput{
+interface MessageOutput{
 	message: string;
 	userId: number;
+	messageId?: number;
+	createdAt?: Date;
+	posts?: MessageOutput[];
 }
 
 interface MessageResponse {
@@ -11,12 +14,12 @@ interface MessageResponse {
 	message: string;
 }
 
-export async function createPost({message, userId}:MessageInput):Promise<MessageInput> {
+export async function handleCreatePost({message, userId}:MessageOutput):Promise<MessageOutput> {
 	if(!message || !userId){
 		throw new Error("Invaid input: Message content and user ID must be provided");
 	}
 
-	const query = `insert into messages (text, user_id) values ($1, $2) returning message_id as messageId, content, created_at as createdAt;`;
+	const query = `insert into messages (text, user_id) values ($1, $2) returning message_id as messageId, content as message, created_at as createdAt;`;
 	const values = [message, userId]
 	try{
 		const result = await pool.query(query, values);
@@ -32,8 +35,8 @@ export async function createPost({message, userId}:MessageInput):Promise<Message
 	}
 }
 
-export async function deletePost(id: number):Promise<MessageResponse>{
-	const query =  `delete from messages where messageid = $1 returning messageid`;
+export async function handleDeletePost(id: number):Promise<MessageResponse>{
+	const query =  `delete from messages where message_id = $1 returning message_id`;
 	const values = [id];
 	try{
 		const result =  await pool.query(query, values);
@@ -55,15 +58,15 @@ export async function deletePost(id: number):Promise<MessageResponse>{
 	}
 }
 
-export async function getPostsByUserId(id: number): Promise<MessageInput[]>{
+export async function handleGetPostsByUserId(id: number): Promise<MessageOutput[]>{
 	try{
-		const result = await pool.query("select text from messages where user_id = $1", [id]);
+		const result = await pool.query("select text as message, created_at as createdAt from messages where user_id = $1", [id]);
 		
 		if(result.rowCount === 0){
 			throw new Error("No posts found for the user");
 		}
 
-		return result.rows;
+		return result.rows as MessageOutput[];
 	}catch(error: unknown){
 		console.error("Error fetching posts",error);
 		throw new Error("Error fetching posts");
