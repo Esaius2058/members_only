@@ -3,6 +3,7 @@ import {
   handleCreateUser,
   handleGetUserById,
   handleUpdateUser,
+  handleAddMember
 } from "../db/userQueries";
 import passport from "../db/userQueries";
 
@@ -23,7 +24,7 @@ export async function createUser(req: Request, res: Response): Promise<void> {
       membership,
     });
     console.log("New user added", user);
-    res.status(201).json({
+    res.status(user.status).json({
       message: "User created successfully",
       userId: user.userId,
       userName: user.userName,
@@ -59,8 +60,8 @@ export async function updateUser(req: Request, res: Response) {
       username,
       password,
     });
-    res.status(200).json({
-      message: "Updated successfully",
+    res.status(updatedUser.status).json({
+      message: updatedUser.message,
       userName: updatedUser.userName,
       fullName: updatedUser.fullName,
     });
@@ -97,4 +98,22 @@ export async function loginUser(
         });
     });
   })(req, res, next);
+}
+
+export async function joinClub(req: Request, res: Response): Promise<void>{
+  const {userId, passcode} = req.body;
+  const SECRET_PASSCODE = "cats suck";
+
+  if(passcode !== SECRET_PASSCODE){
+    res.status(403).json({message: "Incorrect passcode!"});
+    return;
+  }
+
+  try{
+    const update = await handleAddMember(userId);
+    res.status(update.status).json({message: update.message});
+  }catch(error: unknown){
+    console.error("Internal server error", error);
+    res.status(500).json("Internal server error");
+  }
 }
