@@ -131,7 +131,12 @@ export async function handleGetUserById(id: number): Promise<User> {
 
 export async function handleAddMember({userid}: User): Promise<UserResponse>{ 
   try{
-    const result = await pool.query("update users set membership = true where userid = $1 returning *", [userid]);
+    const result = await pool.query("update users set membership = true where user_id = $1 returning user_id, username", [userid]);
+    
+    if (result.rowCount === 0) {
+      throw new Error("User not found or already a member");
+    }
+    
     return {
       message: "Welcome to the club!!",
       status: 200,
