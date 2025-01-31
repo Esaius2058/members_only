@@ -9,6 +9,7 @@ interface User {
   username: string;
   password: string;
   membership?: boolean;
+  passcode?: string;
 }
 
 interface UserResponse {
@@ -126,6 +127,22 @@ export async function handleGetUserById(id: number): Promise<User> {
     console.error("User not found");
     throw new Error("User not found");
   }
+}
+
+export async function handleAddMember({userid}: User): Promise<UserResponse>{ 
+  try{
+    const result = await pool.query("update users set membership = true where userid = $1 returning *", [userid]);
+    return {
+      message: "Welcome to the club!!",
+      status: 200,
+      userId: result.rows[0].userid,
+      userName: result.rows[0].username
+    };
+  }catch(error: unknown){
+    console.error("Error updating membership", error);
+    throw new Error("Error updating membership");
+  }
+  
 }
 
 export default passport;
