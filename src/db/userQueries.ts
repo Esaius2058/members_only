@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import passport, { use } from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 
-interface User {
+export interface User {
   userid?: number;
   fullname: string;
   username: string;
@@ -78,7 +78,13 @@ passport.deserializeUser(async (id: number, done) => {
   try {
     const result = await pool.query("select * from users where id = $1", [id]);
     const user = result.rows[0];
-    done(null, user || null);
+
+    if (!user) return done(null, false);
+    done(null, {
+      id: user.userid,
+      username: user.username,
+      membership: user.membership
+    });
   } catch (error: unknown) {
     done(error);
   }
@@ -136,7 +142,7 @@ export async function handleAddMember({userid}: User): Promise<UserResponse>{
     if (result.rowCount === 0) {
       throw new Error("User not found or already a member");
     }
-    
+
     return {
       message: "Welcome to the club!!",
       status: 200,
