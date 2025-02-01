@@ -1,9 +1,11 @@
 import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
 import {
   handleCreateUser,
   handleGetUserById,
   handleUpdateUser,
-  handleAddMember
+  handleAddMember,
+  User,
 } from "../db/userQueries";
 import passport from "../db/userQueries";
 
@@ -12,6 +14,33 @@ interface LoginRequestBody {
   password: string;
 }
 
+/*const SECRET_KEY = process.env.SECRET;
+
+interface AuthenticatedRequest extends Request {
+  user?: Express.User;
+}
+
+export async function authenticateUser(req: AuthenticatedRequest, res: Response, next: NextFunction){
+  try{
+    const token = req.header("Authorization")?.split("")[1];
+    if(!token){
+      return res.status(401).json({message: "Access Denied: No Token Provided"});
+    }
+
+    const decoded = jwt.verify(token, SECRET_KEY) as {id: string};
+  }catch (error: unknown){
+    res.status(401).json({message: "Unauthorized: Invalid Token"});
+  }
+}
+export async function requireMembership(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void>{
+  const authenticatedReq = req as AuthenticatedRequest;
+  if (!authenticatedReq.user) {
+    res.status(403).json({ message: "Access denied. Members only." });
+    return;
+  }
+  next();
+}
+*/
 export async function createUser(req: Request, res: Response): Promise<void> {
   const { fullname, username, password } = req.body;
   let membership = false;
@@ -90,29 +119,27 @@ export async function loginUser(
         return next(err);
       }
 
-      res
-        .status(200)
-        .json({
-          message: "Login successful",
-          user: { id: user.id, username: user.username},
-        });
+      res.status(200).json({
+        message: "Login successful",
+        user: { id: user.id, username: user.username },
+      });
     });
   })(req, res, next);
 }
 
-export async function joinClub(req: Request, res: Response): Promise<void>{
-  const {userId, passcode} = req.body;
+export async function joinClub(req: Request, res: Response): Promise<void> {
+  const { userId, passcode } = req.body;
   const SECRET_PASSCODE = "cats suck";
 
-  if(passcode !== SECRET_PASSCODE){
-    res.status(403).json({message: "Incorrect passcode!"});
+  if (passcode !== SECRET_PASSCODE) {
+    res.status(403).json({ message: "Incorrect passcode!" });
     return;
   }
 
-  try{
+  try {
     const update = await handleAddMember(userId);
-    res.status(update.status).json({message: update.message});
-  }catch(error: unknown){
+    res.status(update.status).json({ message: update.message });
+  } catch (error: unknown) {
     console.error("Internal server error", error);
     res.status(500).json("Internal server error");
   }
