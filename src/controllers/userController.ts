@@ -42,7 +42,8 @@ export async function requireMembership(req: AuthenticatedRequest, res: Response
 }
 */
 export async function createUser(req: Request, res: Response): Promise<void> {
-  const { fullname, username, password } = req.body;
+  const { firstname, lastname, username, password } = req.body;
+  const fullname = firstname +" "+ lastname;
   let membership = false;
 
   try {
