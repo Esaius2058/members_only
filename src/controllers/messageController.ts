@@ -20,14 +20,14 @@ export async function createPost(req: Request, res: Response): Promise<void>{
 	}
 }
 
-export async function getPostsByUserId(req: Request, res: Response) {
+export async function getPostsByUserId(req: Request, res: Response):Promise<void> {
 	const {userId} = req.params;
 
 	try{
 		const userPosts = await handleGetPostsByUserId(Number(userId));
 
 		if (!userPosts.length) {
-      return res.status(404).json({ message: "No messages found for this user" });
+      	res.status(404).json({ message: "No messages found for this user" });
     }
 
 		res.status(200).json({message: "User's posts retreived successfully", userId, posts: userPosts});
