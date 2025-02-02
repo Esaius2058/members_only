@@ -13,17 +13,17 @@ interface MessageOutput {
 }
 
 export async function createPost(req: Request, res: Response): Promise<void> {
-  const { message, userId } = req.body;
+  const { post } = req.body;
+  const user = req.user; 
+  const userId = user?.id;
 
   try {
-    const post = await handleCreatePost({ message, userId });
-    res
-      .status(201)
-      .json({
-        message: post.message,
-        userId: post.userId,
-        createdAt: post.createdAt,
-      });
+    const newPost = await handleCreatePost(post, Number(userId));
+    res.status(201).json({
+      post: newPost.post,
+      messageId: newPost.messageId,
+      createdAt: newPost.createdAt,
+    });
   } catch (error: unknown) {
     console.error("Internal server error", error);
     res.status(500).json({ message: "Internal server error" });
@@ -40,19 +40,34 @@ export async function getPostsByUserId(
     const userPosts = await handleGetPostsByUserId(Number(userId));
 
     if (!userPosts.length) {
-      res.status(404).json({ message: "No messages found for this user" });
+      res.status(404).json({ message: "No posts found for this user" });
     }
 
-    res
-      .status(200)
-      .json({
-        message: "User's posts retreived successfully",
-        userId,
-        posts: userPosts,
-      });
+    res.status(200).json({
+      message: "User's posts retreived successfully",
+      userId: userId,
+      posts: userPosts,
+    });
   } catch (error: unknown) {
     console.error("Internal server error", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+export async function loadUserProfile(
+  req: Request,
+  res: Response
+): Promise<void> {
+  if (!req.user) {
+    return res.redirect("/users/log-in");
+  }
+
+  try {
+    const userPosts = await handleGetPostsByUserId(Number(req.user.id));
+    res.render("dashboard", { user: { ...req.user, posts: userPosts } });
+  } catch (error: unknown) {
+    console.error("Error fetching user posts:", error);
+    res.status(500).send("Internal server error");
   }
 }
 
