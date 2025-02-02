@@ -3,9 +3,9 @@ import bcrypt from "bcryptjs";
 import passport, { use } from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 
-export interface User {
-  userid?: number;
-  fullname: string;
+export interface CustomUser {
+  id?: number;
+  fullname?: string;
   username: string;
   password: string;
   membership?: boolean;
@@ -25,12 +25,12 @@ export async function handleCreateUser({
   username,
   password,
   membership = false,
-}: User): Promise<UserResponse> {
-  if (!fullname || !username || !password || !membership) {
+}: CustomUser): Promise<UserResponse> {
+  if (!fullname || !username || !password) {
     throw new Error("Invalid input: All fields must be provided");
   }
   const hashedPassword = await bcrypt.hash(password, 10);
-  const query = `insert into users (fullname, username, password, membership) values ($1, $2, $3, $4) returning userid, username`;
+  const query = `insert into users (fullname, username, password, membership) values ($1, $2, $3, $4) returning user_id, username, fullname`;
   const values = [fullname, username, hashedPassword, membership];
 
   try {
@@ -38,7 +38,7 @@ export async function handleCreateUser({
     return {
       message: "User created successfullly",
       status: 201,
-      userId: result.rows[0].userid,
+      userId: result.rows[0].user_id,
       userName: result.rows[0].username
     };
   } catch (error: unknown) {
@@ -71,19 +71,21 @@ passport.use(
 );
 
 passport.serializeUser((user: any, done) => {
-  done(null, user.id);
+  done(null, user.user_id);
 });
 
 passport.deserializeUser(async (id: number, done) => {
   try {
-    const result = await pool.query("select * from users where id = $1", [id]);
+    const result = await pool.query("select * from users where user_id = $1", [id]);
     const user = result.rows[0];
 
     if (!user) return done(null, false);
     done(null, {
-      id: user.userid,
+      id: user.user_id,
       username: user.username,
-      membership: user.membership
+      fullname: user.fullname,
+      membership: user.membership,
+      password: user.password
     });
   } catch (error: unknown) {
     done(error);
@@ -94,13 +96,13 @@ export async function handleUpdateUser({
   fullname,
   username,
   password,
-}: User): Promise<UserResponse> {
+}: CustomUser): Promise<UserResponse> {
   if (!fullname || !username || !password) {
     throw new Error("Invalid input: All fields must be provided");
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const query = `update users set fullname = $1, username = $2, password = $3 where username = $2 returning userid`;
+  const query = `update users set fullname = $1, username = $2, password = $3 where username = $2 returning user_id`;
   const values = [fullname, username, hashedPassword];
 
   try {
@@ -108,7 +110,7 @@ export async function handleUpdateUser({
     return {
       message: "Updated successfully",
       status: 200,
-      userId: result.rows[0].userid,
+      userId: result.rows[0].user_id,
       userName: result.rows[0].username,
       fullName: result.rows[0].fullname
     };
@@ -118,9 +120,9 @@ export async function handleUpdateUser({
   }
 }
 
-export async function handleGetUserById(id: number): Promise<User> {
+export async function handleGetUserById(id: number): Promise<CustomUser> {
   try {
-    const result = await pool.query("select * from users where userid = $1", [
+    const result = await pool.query("select * from users where user_id = $1", [
       id,
     ]);
 
@@ -128,16 +130,16 @@ export async function handleGetUserById(id: number): Promise<User> {
       throw new Error("User not found");
     }
 
-    return result.rows[0] as User;
+    return result.rows[0] as CustomUser;
   } catch (error: unknown) {
     console.error("User not found");
     throw new Error("User not found");
   }
 }
 
-export async function handleAddMember({userid}: User): Promise<UserResponse>{ 
+export async function handleAddMember({id}: CustomUser): Promise<UserResponse>{ 
   try{
-    const result = await pool.query("update users set membership = true where user_id = $1 returning user_id, username", [userid]);
+    const result = await pool.query("update users set membership = true where user_id = $1 returning user_id, username", [id]);
     
     if (result.rowCount === 0) {
       throw new Error("User not found or already a member");
@@ -146,7 +148,7 @@ export async function handleAddMember({userid}: User): Promise<UserResponse>{
     return {
       message: "Welcome to the club!!",
       status: 200,
-      userId: result.rows[0].userid,
+      userId: result.rows[0].id,
       userName: result.rows[0].username
     };
   }catch(error: unknown){
