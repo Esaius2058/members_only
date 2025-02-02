@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+</head>
+<body>
+    <% if(user) { %>
+        <p>Name: <%= user.fullname %></p>
+        <p>Username: <%= user.username %></p>
+        <p>Membership: <%= user.membership %></p>
+
+        <button onclick="location.href='/dashboard'">Dashboard</button>
+        <form action="/users/log-out" method="post">
+            <button type="submit">Logout</button>
+        </form>
+    <% }else { %>
+        <p>Error fetching user info.</p>
+    <% } %>
+</body>
+</html>
