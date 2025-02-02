@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+</head>
+<body>
+    <% if (user) { %>
+        <p>Welcome, <%= user.username %>!!</p>
+        <button onClick="location.href='/user-profile'">User Details</button>
+        <h2>Your Posts</h2>
+        <ul>
+            <% if (Array.isArray(user.posts)) { %>
+                <% user.posts.forEach(post => { %>
+                    <li><%= post.text %></li>
+                <% }) %>
+                <button onclick="location.href='/posts/new'">Create New Post</button>
+            <% } else { %>
+                <p>You haven't posted anything yet.</p>
+                <button onclick="location.href='/posts/new'">Create New Post</button>
+            <% } %>
+        </ul>
+    <% } else { %>
+        <a href="/users/log-in">Login</a>
+        <a href="/users/register">Sign Up</a>
+    <% } %> 
+</body>
+</html>
