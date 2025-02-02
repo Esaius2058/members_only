@@ -1,7 +1,7 @@
 import pool from "./pool";
 
 interface MessageOutput {
-  message: string;
+  post: string;
   userId: number;
   messageId?: number;
   createdAt?: Date;
@@ -14,18 +14,15 @@ interface MessageResponse {
   message: string;
 }
 
-export async function handleCreatePost({
-  message,
-  userId,
-}: MessageOutput): Promise<MessageOutput> {
-  if (!message || !userId) {
+export async function handleCreatePost(post: string, userId: number): Promise<MessageOutput> {
+  if (!post || !userId) {
     throw new Error(
-      "Invaid input: Message content and user ID must be provided"
+      "Invaid input: Post content and user ID must be provided"
     );
   }
 
-  const query = `insert into messages (text, user_id) values ($1, $2) returning message_id as messageId, content as message, created_at as createdAt;`;
-  const values = [message, userId];
+  const query = `insert into messages (text, user_id) values ($1, $2) returning message_id as "messageId", text as post, created_at as "createdAt";`;
+  const values = [post, userId];
   try {
     const result = await pool.query(query, values);
 
@@ -35,7 +32,7 @@ export async function handleCreatePost({
 
     return result.rows[0];
   } catch (error: unknown) {
-    console.error("Error posting message");
+    console.error("Error posting message", error);
     throw new Error("Error posting message");
   }
 }
@@ -65,7 +62,7 @@ export async function handleDeletePost(id: number): Promise<MessageResponse> {
 
 export async function handleGetPostsByUserId(
   id: number
-): Promise<MessageOutput[]> {
+): Promise<MessageOutput[] | string> {
   try {
     const user = await pool.query(
       "select membership from users where user_id = $1",
@@ -79,7 +76,7 @@ export async function handleGetPostsByUserId(
     const result = await pool.query(query);
 
     if (result.rowCount === 0) {
-      throw new Error("No posts found for the user");
+      return "No posts found for the user";
     }
 
     return result.rows as MessageOutput[];
