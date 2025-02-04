@@ -2,6 +2,7 @@ import { Response, Request, NextFunction } from "express";
 import {
   handleCreatePost,
   handleDeletePost,
+  handleGetPersonalPosts,
   handleGetPostsByUserId,
 } from "../db/messageQueries";
 
@@ -63,7 +64,7 @@ export async function loadUserProfile(
   }
 
   try {
-    const userPosts = await handleGetPostsByUserId(Number(req.user.id));
+    const userPosts = await handleGetPersonalPosts(Number(req.user.id));
     res.render("dashboard", { user: { ...req.user, posts: userPosts } });
   } catch (error: unknown) {
     console.error("Error fetching user posts:", error);
