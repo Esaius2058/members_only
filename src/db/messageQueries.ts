@@ -60,6 +60,23 @@ export async function handleDeletePost(id: number): Promise<MessageResponse> {
   }
 }
 
+export async function handleGetPersonalPosts(id: number): Promise<MessageOutput[] | string >{
+  const query = "select text from messages where user_id = $1";
+  const values = [id];
+  try{
+    const result= await pool.query(query, values);
+
+    if (result.rowCount === 0) {
+      return "No posts found for the user";
+    }
+
+    return result.rows as MessageOutput[];
+  }catch(error: unknown){
+    console.error("Error fetching posts.", error);
+    throw new Error("Error fetching posts.");
+  }
+}
+
 export async function handleGetPostsByUserId(
   id: number
 ): Promise<MessageOutput[] | string> {
