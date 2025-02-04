@@ -40,7 +40,7 @@ moRouter.get("/posts/new", (req, res) => {
   res.render("new_post", {title: "New Post"});
 });
 moRouter.post("/posts/new", createPost);
-moRouter.get("/messages/:userId", getPostsByUserId);
-moRouter.delete("/messages/delete/:messageId", deletePost);
+moRouter.get("/posts/:userId", getPostsByUserId);
+moRouter.delete("/posts/delete/:messageId", deletePost);
 
 export default moRouter;
