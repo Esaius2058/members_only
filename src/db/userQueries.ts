@@ -137,7 +137,7 @@ export async function handleGetUserById(id: number): Promise<CustomUser> {
   }
 }
 
-export async function handleAddMember({id}: CustomUser): Promise<UserResponse>{ 
+export async function handleAddMember(id: number): Promise<UserResponse>{ 
   try{
     const result = await pool.query("update users set membership = true where user_id = $1 returning user_id, username", [id]);
     
@@ -146,7 +146,7 @@ export async function handleAddMember({id}: CustomUser): Promise<UserResponse>{
     }
 
     return {
-      message: "Welcome to the club!!",
+      message: "You're now a premium member!!",
       status: 200,
       userId: result.rows[0].id,
       userName: result.rows[0].username
