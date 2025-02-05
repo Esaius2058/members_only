@@ -60,6 +60,31 @@ export async function handleDeletePost(id: number): Promise<MessageResponse> {
   }
 }
 
+export async function handleGetPosts(id: number): Promise<MessageOutput[] | string>{
+  const user = await pool.query(
+    "select membership from users where user_id = $1",
+    [id]
+  );
+  const isMember = user.rows[0]?.membership;
+
+  const query = isMember
+    ? "select messages.message_id, messages.text, messages.created_at, users.username from messages join users on messages.user_id = users.user_id"
+    : "select message_id, text from messages";
+
+  try{
+    const result = await pool.query(query);
+    
+    if (result.rowCount === 0) {
+      return "No posts found for the user";
+    }
+
+    return result.rows as MessageOutput[];
+  }catch(error: unknown){
+    console.error("Error fetching posts.", error);
+    throw new Error("Error fetching posts.");
+  }
+}
+
 export async function handleGetPersonalPosts(id: number): Promise<MessageOutput[] | string >{
   const query = "select text from messages where user_id = $1";
   const values = [id];
@@ -88,7 +113,7 @@ export async function handleGetPostsByUserId(
     const isMember = user.rows[0]?.membership;
 
     const query = isMember
-      ? "select messages.messageid, messages.text, users.username from messages join users on messages.user_id = users.user_id"
+      ? "select messages.message_id, messages.text, messages.created_at, users.username from messages join users on messages.user_id = users.user_id"
       : "select message_id, text from messages";
     const result = await pool.query(query);
 
