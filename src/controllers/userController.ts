@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+
 import {
   handleCreateUser,
   handleGetUserById,
@@ -93,7 +93,7 @@ export async function loginUser(
         return next(err);
       }
 
-      return res.redirect("/dashboard");
+      return res.redirect("/users/dashboard");
     });
   })(req, res, next);
 }
@@ -110,7 +110,9 @@ export async function logoutUser(req: Request, res: Response, next: NextFunction
 };
 
 export async function joinClub(req: Request, res: Response): Promise<void> {
-  const { userId, passcode } = req.body;
+  const { passcode } = req.body;
+  const userId = req.user?.id;
+
   const SECRET_PASSCODE = "cats suck";
 
   if (passcode !== SECRET_PASSCODE) {
@@ -119,7 +121,7 @@ export async function joinClub(req: Request, res: Response): Promise<void> {
   }
 
   try {
-    const update = await handleAddMember(userId);
+    const update = await handleAddMember(Number(userId));
     res.status(update.status).json({ message: update.message });
   } catch (error: unknown) {
     console.error("Internal server error", error);
