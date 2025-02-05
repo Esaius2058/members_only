@@ -11,6 +11,19 @@
         <p>Username: <%= user.username %></p>
         <p>Membership: <%= user.membership %></p>
 
+        <ul>
+            <h2>Your Posts</h2>
+            <% if (Array.isArray(user.posts)) { %>
+                <% user.posts.forEach(post => { %>
+                    <li><%= post.text %></li>
+                <% }) %>
+                <button onclick="location.href='/posts/new'">Create New Post</button>
+            <% } else { %>
+                <p>You haven't posted anything yet.</p>
+                <button onclick="location.href='/posts/new'">Create New Post</button>
+            <% } %>
+        </ul>
+
         <button onclick="location.href='/dashboard'">Dashboard</button>
         <form action="/users/log-out" method="post">
             <button type="submit">Logout</button>
