@@ -5,12 +5,14 @@ import {
   updateUser,
   loginUser,
   logoutUser,
+  joinClub,
 } from "../controllers/userController";
 import {
   createPost,
   getPostsByUserId,
   deletePost,
-  loadUserProfile
+  loadUserProfile,
+  loadDashboard
 } from "../controllers/messageController";
 
 const moRouter = Router();
@@ -28,11 +30,13 @@ moRouter.get("/users/log-in", (req, res) => {
 });
 moRouter.post("/users/log-in", loginUser);
 moRouter.post("/users/log-out", logoutUser);
-moRouter.get("/dashboard", loadUserProfile);
-moRouter.get("/user-profile", (req, res) => {
-  res.render("user-profile", {title: "User Profile", user: req.user});
+moRouter.get("/users/dashboard", loadDashboard);
+moRouter.get("/user-profile", loadUserProfile);
+moRouter.get("/users/join-club", (req, res) => {
+  res.render("join-club");
 });
 moRouter.get("/users/:userId", getUserById);
+moRouter.post("/users/join-club", joinClub);
 moRouter.put("/users/update/:userId", updateUser);
 
 //Messages Routes
