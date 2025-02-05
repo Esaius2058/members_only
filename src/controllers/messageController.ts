@@ -3,8 +3,10 @@ import {
   handleCreatePost,
   handleDeletePost,
   handleGetPersonalPosts,
+  handleGetPosts,
   handleGetPostsByUserId,
 } from "../db/messageQueries";
+import pool from "../db/pool";
 
 interface MessageOutput {
   message: string;
@@ -55,6 +57,21 @@ export async function getPostsByUserId(
   }
 }
 
+export async function loadDashboard(req: Request, res: Response): Promise<void>{
+  if (!req.user) {
+    return res.redirect("/users/log-in");
+  }
+  
+  try{
+    const userId = req.user.id;
+    const allPosts = await handleGetPosts(Number(userId));
+    res.render("dashboard", { user: { ...req.user, AllPosts: allPosts } });
+  }catch(error: unknown){
+    console.error("Error fetching posts", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 export async function loadUserProfile(
   req: Request,
   res: Response
@@ -65,7 +82,7 @@ export async function loadUserProfile(
 
   try {
     const userPosts = await handleGetPersonalPosts(Number(req.user.id));
-    res.render("dashboard", { user: { ...req.user, posts: userPosts } });
+    res.render("user-profile", {title: "User Profile", user: { ...req.user, posts: userPosts } });
   } catch (error: unknown) {
     console.error("Error fetching user posts:", error);
     res.status(500).send("Internal server error");
