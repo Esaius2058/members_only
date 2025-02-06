@@ -6,6 +6,7 @@ import {
   loginUser,
   logoutUser,
   joinClub,
+  authenticateAdmin,
 } from "../controllers/userController";
 import {
   createPost,
@@ -35,13 +36,20 @@ moRouter.get("/user-profile", loadUserProfile);
 moRouter.get("/users/join-club", (req, res) => {
   res.render("join-club");
 });
+moRouter.get("/users/admin-auth", (req, res) => {
+  res.render("admin-auth");
+});
+moRouter.post("/users/admin-auth", authenticateAdmin);
 moRouter.get("/users/:userId", getUserById);
 moRouter.post("/users/join-club", joinClub);
-moRouter.put("/users/update/:userId", updateUser);
+moRouter.get("/users/profile/update", (req, res) => {
+  res.render("update", {title: "Profile Update",user: {...req.user}});
+});
+moRouter.post("/users/profile/update", updateUser);
 
 //Messages Routes
 moRouter.get("/posts/new", (req, res) => {
-  res.render("new_post", {title: "New Post"});
+  res.render("new-post", {title: "New Post"});
 });
 moRouter.post("/posts/new", createPost);
 moRouter.get("/posts/:userId", getPostsByUserId);
