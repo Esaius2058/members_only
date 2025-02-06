@@ -8,7 +8,7 @@
 <body>
     <% if (user) { %>
         <p>Welcome, <%= user.username %>!!</p>
-        <button onClick="location.href='/user-profile'">User Details</button>
+        <button onClick="location.href='/user-profile'">Profile</button>
         <h2>Posts</h2>
         <ul>
             <% if (Array.isArray(user.AllPosts)) { %>
