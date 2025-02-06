@@ -1,4 +1,7 @@
 import { Request, Response, NextFunction } from "express";
+import bcrypt from "bcryptjs";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 import {
   handleCreateUser,
@@ -6,6 +9,7 @@ import {
   handleUpdateUser,
   handleAddMember,
   CustomUser,
+  handleAdminAuthentication,
 } from "../db/userQueries";
 import passport from "../db/userQueries";
 
@@ -39,10 +43,10 @@ export async function createUser(req: Request, res: Response): Promise<void> {
 }
 
 export async function getUserById(req: Request, res: Response): Promise<void> {
-  const { userid } = req.params;
+  const { userId } = req.params;
 
   try {
-    const user = await handleGetUserById(Number(userid));
+    const user = await handleGetUserById(Number(userId));
     res.status(200).json({
       fullname: user.fullname,
       username: user.username,
@@ -55,13 +59,16 @@ export async function getUserById(req: Request, res: Response): Promise<void> {
 }
 
 export async function updateUser(req: Request, res: Response) {
-  const { fullname, username, password } = req.body;
+  const { fullname, username} = req.body;
+  const id = req.user?.id;
+  const password = req.user?.password;
 
   try {
     const updatedUser = await handleUpdateUser({
+      id,
       fullname,
       username,
-      password,
+      password
     });
     res.status(updatedUser.status).json({
       message: updatedUser.message,
@@ -124,6 +131,26 @@ export async function joinClub(req: Request, res: Response): Promise<void> {
     const update = await handleAddMember(Number(userId));
     res.status(update.status).json({ message: update.message });
   } catch (error: unknown) {
+    console.error("Internal server error", error);
+    res.status(500).json("Internal server error");
+  }
+}
+
+export async function authenticateAdmin(req: Request, res: Response): Promise<void> {
+  const {passcode} = req.body;
+  const userId = req.user?.id;
+
+  const ADMIN_PASSCODE = process.env.ADMINPASSCODE;
+
+  if (passcode !== ADMIN_PASSCODE){
+    res.status(403).json({ message: "Incorrect admin passcode!" });
+    return;
+  }
+
+  try{
+    const update = await handleAdminAuthentication(Number(userId), passcode);
+    res.status(update.status).json({ message: update.message });
+  } catch (error: unknown){
     console.error("Internal server error", error);
     res.status(500).json("Internal server error");
   }
