@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+</head>
+<body>
+    <% if (user) { %>
+        <form action="/users/profile/update" method="post">
+            <label for="fullname">Name: </label>
+            <input type="text" name="fullname" id="fullname" value=<%=user.fullname%>>
+            <label for="username">Username: </label>
+            <input type="text" name="username" id="username" value=<%=user.username%>>
+            <label for="membership">Premium Member</label>
+            <input type="text" name="membership" id="membership" value=<%=user.membership%> readonly>
+            <button type="submit">Update</button>
+        </form>
+    <% }else {%>
+        <p>Error fetching user info.</p>
+        <button onclick="location.href=/users/register">Login</button>
+        <button onclick="location.href=/users/register">Sign Up</button>
+    <% } %>
+</body>
+</html>
