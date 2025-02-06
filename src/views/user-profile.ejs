@@ -24,12 +24,15 @@
             <% } %>
         </ul>
 
+        <button onclick="location.href='/users/profile/update'">Update Profile</button>
         <button onclick="location.href='/dashboard'">Dashboard</button>
         <form action="/users/log-out" method="post">
             <button type="submit">Logout</button>
         </form>
-    <% }else { %>
+    <% } else { %>
         <p>Error fetching user info.</p>
+        <button onclick="location.href=/users/register">Login</button>
+        <button onclick="location.href=/users/register">Sign Up</button>
     <% } %>
 </body>
 </html>
