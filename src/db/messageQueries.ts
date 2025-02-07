@@ -85,8 +85,27 @@ export async function handleGetPosts(id: number): Promise<MessageOutput[] | stri
   }
 }
 
+export async function handleGetPostsAdmin(id: number): Promise<MessageOutput[] | string> {
+  const user = await pool.query("select admin from users where user_id = $1", [id]);
+  const isAdmin = user.rows[0]?.admin;
+
+  const query = "select messages.message_id, messages.text, messages.created_at, users.username from messages join users on messages.user_id = users.user_id";
+
+  try{
+    if (isAdmin){
+      const result = await pool.query(query);
+      return result.rows as MessageOutput[];
+    } else {
+      return "You don't have admin privileges";
+    }
+  }catch(error: unknown){
+    console.error("Error fetching posts.", error);
+    throw new Error("Error fetching posts.");
+  }
+}
+
 export async function handleGetPersonalPosts(id: number): Promise<MessageOutput[] | string >{
-  const query = "select text from messages where user_id = $1";
+  const query = "select * from messages where user_id = $1 ";
   const values = [id];
   try{
     const result= await pool.query(query, values);
