@@ -5,7 +5,9 @@ import {
   handleGetPersonalPosts,
   handleGetPosts,
   handleGetPostsByUserId,
+  handleGetPostsAdmin
 } from "../db/messageQueries";
+import { handleGetUsersAdmin } from "../db/userQueries";
 import pool from "../db/pool";
 
 interface MessageOutput {
@@ -89,14 +91,31 @@ export async function loadUserProfile(
   }
 }
 
+export async function loadAdminDashboard(req: Request, res: Response) :Promise<void> {
+  if (!req.user) {
+    return res.redirect("/users/log-in");
+  }
+  const userId = req.user.id;
+
+  try{
+    const allPosts = await handleGetPostsAdmin(Number(userId));
+    const allUsers = await handleGetUsersAdmin(Number(userId));
+    return res.render("admin-dashboard", {title: "Admin Dashboard", Users: {posts: allPosts, users: allUsers}});
+  }catch (error: unknown){
+    console.error("Error fetching users and posts", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 export async function deletePost(req: Request, res: Response): Promise<void> {
-  const { messageId } = req.params;
+  const messageId = req.query.messageId;
+  console.log("MessageId:", messageId);
 
   try {
-    await handleDeletePost(Number(messageId));
+    const result = await handleDeletePost(Number(messageId));
     res
-      .status(200)
-      .json({ message: "Successfully deleted message", messageId: messageId });
+      .status(result.status)
+      .json({ message: result.message, messageId: result.messageId });
   } catch (error: unknown) {
     console.error("Internal server error", error);
     res.status(500).json({ message: "Internal server error" });
