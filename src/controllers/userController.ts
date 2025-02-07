@@ -119,6 +119,7 @@ export async function logoutUser(req: Request, res: Response, next: NextFunction
 export async function joinClub(req: Request, res: Response): Promise<void> {
   const { passcode } = req.body;
   const userId = req.user?.id;
+  console.log(userId);
 
   const SECRET_PASSCODE = "cats suck";
 
@@ -140,7 +141,7 @@ export async function authenticateAdmin(req: Request, res: Response): Promise<vo
   const {passcode} = req.body;
   const userId = req.user?.id;
 
-  const ADMIN_PASSCODE = process.env.ADMINPASSCODE;
+  const ADMIN_PASSCODE = process.env.ADMIN_PASSCODE;
 
   if (passcode !== ADMIN_PASSCODE){
     res.status(403).json({ message: "Incorrect admin passcode!" });
@@ -149,7 +150,9 @@ export async function authenticateAdmin(req: Request, res: Response): Promise<vo
 
   try{
     const update = await handleAdminAuthentication(Number(userId), passcode);
-    res.status(update.status).json({ message: update.message });
+    if(update.status === 200){
+      return res.redirect("/users/admin/dashboard");
+    }
   } catch (error: unknown){
     console.error("Internal server error", error);
     res.status(500).json("Internal server error");
