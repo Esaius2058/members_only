@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+</head>
+<body>
+    <% if (Users) { %> 
+        <% if(Array.isArray(Users.posts)) { %>
+            <p>Posts</p> 
+            <% Users.posts.forEach( post => { %> 
+                <p><strong><%= post.username %></strong>: <%= post.text %></p>
+                <p><em>Posted on: <%= post.created_at %></em></p>
+                <br>
+                <form action="/posts/delete?messageId=<%= post.message_id %>" method="post">
+                    <button type="submit">Delete Post</button>
+                </form>
+            <% }) %> 
+        <% } %>
+
+        <% if (Array.isArray(Users.users)) { %> 
+            <p>Users</p>
+            <% Users.users.forEach(user => { %> 
+                <p>Name: <%= user.fullname %></p>
+                <p>Username: <%= user.username %></p>
+                <p>Membership: <%= user.membership %></p>
+            <% }) %>
+        <% } %>
+    <% } %>
+</body>
+</html>
