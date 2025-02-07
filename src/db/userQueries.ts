@@ -11,6 +11,7 @@ export interface CustomUser {
   password?: string;
   membership?: boolean;
   passcode?: string;
+  users?: CustomUser[];
 }
 
 interface UserResponse {
@@ -147,15 +148,17 @@ export async function handleAddMember(id: number): Promise<UserResponse>{
     const result = await pool.query("update users set membership = true where user_id = $1 returning user_id, username, membership", [id]);
     
     if (result.rowCount === 0) {
-      throw new Error("User not found or already a member");
-    } else if(result.rows[0].membership){
-      throw new Error("User not found or already a member");
+      throw new Error("User not found");
+    } 
+
+    if (result.rows[0].membership === true) {
+      throw new Error("Already a member");
     }
 
     return {
       message: "You're now a premium member!!",
       status: 200,
-      userId: result.rows[0].id,
+      userId: result.rows[0].user_id,
       userName: result.rows[0].username
     };
   }catch(error: unknown){
@@ -165,7 +168,7 @@ export async function handleAddMember(id: number): Promise<UserResponse>{
 }
 
 export async function handleAdminAuthentication(id: number, passcode: string): Promise<UserResponse> {
-  const adminPasscode = process.env.ADMINPASSCODE;
+  const adminPasscode = process.env.ADMIN_PASSCODE;
   if(passcode !== adminPasscode){
     return { 
       message: "Wrong Passcode!!",
@@ -177,16 +180,35 @@ export async function handleAdminAuthentication(id: number, passcode: string): P
 
   if (result.rowCount === 0) {
     throw new Error("User not found");
-  }else if(result.rows[0].admin){
-    throw new Error("User is an admin");
+  }
+
+  if (result.rows[0].admin === true) {
+    throw new Error("Already admin");
   }
 
   return {
-    message: "You're now have admin priviledges!!",
+    message: "You now have admin priviledges!!",
     status: 200,
     userId: result.rows[0].id,
     userName: result.rows[0].username
   };
+}
+
+export async function handleGetUsersAdmin(id: number): Promise<CustomUser[]>{
+  const user = await pool.query("select admin from users where user_id = $1", [id]);
+  const isAdmin = user.rows[0].admin;
+
+  try{
+    if(!isAdmin){
+      throw new Error("You don't have admin privileges");
+    }
+
+    const allUsers = await pool.query("select * from users");
+    return allUsers.rows as CustomUser[];
+  }catch(error: unknown){
+    console.error("Error retreiving posts", error);
+    throw new Error("Error retreiving posts");
+  }
 }
 
 export default passport;
