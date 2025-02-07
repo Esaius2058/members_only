@@ -13,7 +13,8 @@ import {
   getPostsByUserId,
   deletePost,
   loadUserProfile,
-  loadDashboard
+  loadDashboard,
+  loadAdminDashboard
 } from "../controllers/messageController";
 
 const moRouter = Router();
@@ -37,9 +38,10 @@ moRouter.get("/users/join-club", (req, res) => {
   res.render("join-club");
 });
 moRouter.get("/users/admin-auth", (req, res) => {
-  res.render("admin-auth");
+  res.render("admin-auth", {title: "Admin Authentication"});
 });
 moRouter.post("/users/admin-auth", authenticateAdmin);
+moRouter.get("/users/admin/dashboard", loadAdminDashboard);
 moRouter.get("/users/:userId", getUserById);
 moRouter.post("/users/join-club", joinClub);
 moRouter.get("/users/profile/update", (req, res) => {
@@ -53,6 +55,6 @@ moRouter.get("/posts/new", (req, res) => {
 });
 moRouter.post("/posts/new", createPost);
 moRouter.get("/posts/:userId", getPostsByUserId);
-moRouter.delete("/posts/delete/:messageId", deletePost);
+moRouter.post("/posts/delete", deletePost);
 
 export default moRouter;
