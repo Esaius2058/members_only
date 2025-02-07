@@ -16,6 +16,9 @@
             <% if (Array.isArray(user.posts)) { %>
                 <% user.posts.forEach(post => { %>
                     <li><%= post.text %></li>
+                    <form action="/posts/delete?messageId=<%= post.message_id %>" method="post">
+                        <button type="submit">Delete Post</button>
+                    </form>
                 <% }) %>
                 <button onclick="location.href='/posts/new'">Create New Post</button>
             <% } else { %>
